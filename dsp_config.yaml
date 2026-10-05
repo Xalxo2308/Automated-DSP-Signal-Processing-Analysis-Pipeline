@@ -1,0 +1,16 @@
+sampling:
+  fs: 5000                   # Sampling Frequency (Hz)
+  duration: 1.0              # Duration in seconds
+
+signals:
+  target_freq: 120           # Target carrier (Hz)
+  interfere_freq: 450        # Interfering tone (Hz)
+  target_amp: 1.0
+  interfere_amp: 0.8
+  snr_db: 5.0                # Additive White Gaussian Noise level (dB)
+
+filter:
+  order: 4                   # Filter order
+  low_cutoff: 100            # Passband low edge (Hz)
+  high_cutoff: 140           # Passband high edge (Hz)
+  
