@@ -1,3 +1,7 @@
+from src.performance_metrics import (
+    calculate_tone_attenuation_db,
+    calculate_tone_retention_percent,
+)
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq
@@ -60,7 +64,27 @@ def main():
     dsp.generate_multitone(freqs=[120.0, 450.0], amplitudes=[1.0, 0.7])
     dsp.add_awgn(snr_db=5.0)
     dsp.apply_bandpass(lowcut=80.0, highcut=160.0, order=4)
+    # Quantitative tone-level performance measurements
+    target_retention = calculate_tone_retention_percent(
+        dsp.noisy_signal,
+        dsp.filtered_signal,
+        dsp.fs,
+        120.0,
+    )
 
+    interference_attenuation = calculate_tone_attenuation_db(
+        dsp.noisy_signal,
+        dsp.filtered_signal,
+        dsp.fs,
+        450.0,
+    )
+
+    print("\n--- DSP Performance Report ---")
+    print(f"Target tone retention (120 Hz): {target_retention:.2f}%")
+    print(
+        "Interference attenuation (450 Hz): "
+        f"{interference_attenuation:.2f} dB"
+    )
     freqs, noisy_mag = dsp.compute_fft(dsp.noisy_signal)
     _, filtered_mag = dsp.compute_fft(dsp.filtered_signal)
 
