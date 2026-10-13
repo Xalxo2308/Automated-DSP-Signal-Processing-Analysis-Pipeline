@@ -21,3 +21,56 @@ def test_sos_filter_attenuation():
     sos = design_sos_bandpass(100, 140, fs, order=4)
     filtered = apply_sos_filter(high_freq_noise, sos)
     assert np.std(filtered) < 0.1 * np.std(high_freq_noise)
+
+
+from src.performance_metrics import (
+    calculate_snr_db,
+    calculate_tone_amplitude,
+    calculate_tone_attenuation_db,
+    calculate_tone_retention_percent,
+)
+
+
+def test_calculate_snr_db():
+    reference = np.ones(1000)
+    measured = reference + np.full(1000, 0.1)
+
+    snr = calculate_snr_db(reference, measured)
+
+    assert np.isclose(snr, 20.0)
+
+
+def test_calculate_tone_amplitude():
+    fs = 5000
+    t = np.arange(fs) / fs
+    signal = 1.5 * np.sin(2 * np.pi * 120 * t)
+
+    amplitude = calculate_tone_amplitude(signal, fs, 120)
+
+    assert np.isclose(amplitude, 1.5, atol=1e-10)
+
+
+def test_calculate_tone_attenuation_db():
+    fs = 5000
+    t = np.arange(fs) / fs
+    input_signal = np.sin(2 * np.pi * 450 * t)
+    output_signal = 0.1 * input_signal
+
+    attenuation = calculate_tone_attenuation_db(
+        input_signal, output_signal, fs, 450
+    )
+
+    assert np.isclose(attenuation, 20.0, atol=1e-10)
+
+
+def test_calculate_tone_retention_percent():
+    fs = 5000
+    t = np.arange(fs) / fs
+    input_signal = np.sin(2 * np.pi * 120 * t)
+    output_signal = 0.8 * input_signal
+
+    retention = calculate_tone_retention_percent(
+        input_signal, output_signal, fs, 120
+    )
+
+    assert np.isclose(retention, 80.0, atol=1e-10)
