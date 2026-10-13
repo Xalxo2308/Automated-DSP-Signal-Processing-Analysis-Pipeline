@@ -1,171 +1,210 @@
 # Automated DSP & Signal Processing Analysis Pipeline
 
-A Python-based digital signal processing (DSP) project for signal generation, noise analysis, frequency-domain inspection and digital filtering. The project explores how signal-processing techniques can be combined into a repeatable analysis workflow using NumPy and SciPy.
+A modular Python project for automated digital signal processing (DSP), combining multi-tone signal generation, additive white Gaussian noise (AWGN) modelling, FFT-based spectral analysis and Butterworth band-pass filtering.
+
+The project demonstrates a configurable and testable workflow for investigating signal interference and frequency-selective filtering, with applications in telecommunications, electronics and measurement systems.
 
 ## Overview
 
-Digital signals can be corrupted by noise and unwanted frequency components, making it difficult to identify the information of interest. This project implements a signal-processing workflow to investigate signal characteristics, introduce controlled noise, analyse frequency content and apply digital filters.
+Signal processing systems often need to recover a component of interest from a signal containing interference and noise. This project models that problem using a synthetic multi-tone signal and a configurable digital filtering pipeline.
 
-The project focuses on fundamental DSP concepts relevant to telecommunications, electronics and measurement systems.
+The implementation uses Python's scientific-computing ecosystem and separates signal-processing functionality, configuration, execution and tests.
 
-## Engineering Objectives
+## Key Features
 
-- Generate and analyse synthetic test signals.
-- Investigate signal behaviour in the time and frequency domains.
-- Introduce additive white Gaussian noise (AWGN) under a controlled SNR condition.
-- Apply Fast Fourier Transform (FFT) analysis to inspect frequency components.
-- Implement Butterworth filtering to isolate desired frequency content.
-- Compare signal characteristics before and after filtering.
-- Produce plots that support interpretation of the processing results.
+- **Configurable signal generation:** synthesises a multi-tone signal with defined frequencies and amplitudes.
+- **AWGN modelling:** introduces additive white Gaussian noise using a target signal-to-noise ratio (SNR).
+- **FFT analysis:** examines the frequency content of the generated signal.
+- **Butterworth band-pass filtering:** uses a second-order-section (SOS) filter implementation.
+- **External configuration:** stores sampling, signal and filter parameters in a YAML file.
+- **Modular architecture:** organises processing code into a source directory.
+- **Automated testing:** includes a dedicated test suite using pytest.
+- **Visualisation:** includes a spectrum-analysis image for examining the signal-processing workflow.
 
 ## Signal Processing Workflow
 
 ```text
-Signal Generation
-       |
-       v
-Time-Domain Analysis
-       |
-       v
+YAML Configuration
+        |
+        v
+Multi-Tone Signal Generation
+        |
+        v
 AWGN Noise Addition
-       |
-       v
-SNR and Frequency Analysis
-       |
-       v
-FFT-Based Spectral Inspection
-       |
-       v
-Butterworth Digital Filtering
-       |
-       v
+        |
+        v
+FFT / Frequency-Domain Analysis
+        |
+        v
+Butterworth Band-Pass Filtering
+        |
+        v
 Filtered Signal Analysis
-       |
-       v
-Visualisation and Interpretation
+        |
+        v
+Visualisation and Testing
 ```
+
+## Configured Example
+
+The current `dsp_config.yaml` defines the following example parameters:
+
+| Parameter | Configured value |
+|---|---:|
+| Sampling frequency | 5,000 Hz |
+| Signal duration | 1 second |
+| Target frequency | 120 Hz |
+| Interfering frequency | 450 Hz |
+| Target amplitude | 1.0 |
+| Interfering amplitude | 0.8 |
+| AWGN target SNR | 5 dB |
+| Butterworth filter order | 4 |
+| Lower filter cutoff | 100 Hz |
+| Upper filter cutoff | 140 Hz |
+
+These settings define a test scenario in which the 120 Hz component lies inside the configured passband while the 450 Hz component lies outside it.
+
+The purpose is to investigate frequency-selective filtering. Actual attenuation and signal quality should be evaluated from measured outputs rather than assumed.
 
 ## Technical Implementation
 
-### 1. Signal Generation
+### 1. Multi-Tone Signal Generation
 
-Synthetic multi-tone signals provide a controlled input for investigating frequency-domain behaviour.
+The signal processor synthesises a waveform by combining sinusoidal components with specified frequencies and amplitudes.
 
-An example test signal discussed in this project combines components at 120 Hz and 450 Hz. Synthetic signals make it possible to examine known frequency components and study the effects of noise and filtering.
+This provides a controlled test signal with known frequency components for examining the behaviour of the processing pipeline.
 
-### 2. Noise Modelling
+### 2. Additive White Gaussian Noise
 
-Additive white Gaussian noise (AWGN) is used to investigate the effect of noise on signal quality.
+The noise-generation stage estimates signal power and derives noise power from the requested SNR:
 
-A 5 dB SNR condition is an example scenario used in the project's signal-processing workflow. SNR provides a way to describe the relative power of the desired signal and noise.
+\[
+P_{\text{noise}}=\frac{P_{\text{signal}}}{10^{\mathrm{SNR}_{\mathrm{dB}}/10}}
+\]
+
+Gaussian noise is then generated and added to the original signal.
 
 ### 3. Frequency-Domain Analysis
 
-The Fast Fourier Transform (FFT) converts a sampled signal from its time-domain representation into a frequency-domain representation.
+The Fast Fourier Transform (FFT) is used to inspect frequency components in the sampled signal. This helps identify the target and interfering tones and examine changes in spectral content.
 
-This analysis helps identify dominant frequency components and examine how noise and filtering affect the observed spectrum.
+### 4. Butterworth Band-Pass Filter
 
-### 4. Digital Filtering
+The filtering stage designs a Butterworth band-pass filter using SciPy and represents the filter using second-order sections.
 
-Butterworth filters are used to investigate frequency-selective signal processing. SciPy's signal-processing functionality, including second-order-section filtering with `sosfilt`, supports filter implementation.
+The configured 100–140 Hz passband is intended to retain the 120 Hz target component while attenuating components outside the passband.
 
-The filtering stage is intended to retain the frequency content of interest while attenuating unwanted components. Actual attenuation depends on the filter design, cutoff frequencies, order and input signal.
+Filter behaviour depends on the implementation, filter order, cutoff frequencies and signal characteristics.
 
-### 5. Visualisation
+### 5. Configuration-Driven Processing
 
-Plots are used to inspect signal behaviour at different stages of the pipeline, including the time-domain waveform and frequency spectrum.
+The `dsp_config.yaml` file centralises key parameters, including the sampling rate, duration, signal frequencies, amplitudes, SNR and filter settings.
 
-Visual comparisons help connect the mathematical principles of DSP with the observed signal behaviour.
+Keeping these parameters outside the processing code makes it easier to configure and repeat experiments.
+
+### 6. Testing
+
+The repository includes a `tests/` directory and pytest in its dependency list. The test suite supports validation of the processing implementation.
+
+Run the tests using the instructions below. Test coverage and passing results should be confirmed from an actual test run.
+
+## Spectrum Analysis
+
+The repository includes a spectrum-analysis visualisation:
+
+![DSP Spectrum Analysis](dsp_spectrum_analysis.png)
+
+The image provides a visual reference for the project's frequency-domain analysis. Interpret the plotted results alongside the configured parameters and actual processing output.
 
 ## Technology Stack
 
-| Technology | Application |
+| Technology | Purpose |
 |---|---|
-| Python | Implementation and workflow automation |
-| NumPy | Numerical computation and array operations |
-| SciPy | Digital filter design and signal processing |
-| FFT | Frequency-domain analysis |
-| Matplotlib, if used in the implementation | Signal and spectrum visualisation |
+| Python | Core implementation |
+| NumPy | Numerical arrays and signal calculations |
+| SciPy | FFT operations and digital filter design |
+| Matplotlib | Signal and spectrum visualisation |
+| PyYAML | YAML configuration support |
+| pytest | Automated testing |
 
-## Example Analysis Scenario
+## Repository Structure
 
-The project explores a multi-tone signal containing 120 Hz and 450 Hz components, with an example AWGN condition of 5 dB SNR.
-
-The workflow examines the signal spectrum and applies frequency-selective filtering to investigate the retention of a target component.
-
-The purpose of this scenario is to demonstrate DSP methodology. Quantitative performance claims should be based on measured results from the actual implementation.
-
-## Relevance to Engineering
-
-The methods demonstrated in this project are relevant to:
-
-- Telecommunications signal analysis
-- Electronic measurement and instrumentation
-- Noise and interference analysis
-- Digital filter design
-- Frequency-domain inspection
-- Automated engineering analysis workflows
-
-The concepts also provide a foundation for more advanced signal-acquisition systems in which analogue conditioning and ADC sampling feed digital processing software.
-
-## Skills Demonstrated
-
-- Python-based numerical computing
-- Fundamental digital signal processing
-- FFT and spectral analysis
-- AWGN noise modelling
-- Signal-to-noise ratio analysis
-- Butterworth filter implementation
-- Technical plotting and interpretation
-- Structured signal-processing workflows
-
-## Repository Contents
-
-The repository contains the implementation files for the DSP analysis pipeline. Refer to the source files and any included dependency or configuration files for the exact implementation details.
+```text
+Automated-DSP-Signal-Processing-Analysis-Pipeline/
+├── src/                       # Modular processing implementation
+├── tests/                     # Automated tests
+├── dsp_pipeline.py            # Pipeline entry-point / processing script
+├── dsp_config.yaml            # Signal and filter configuration
+├── dsp_spectrum_analysis.png  # Spectrum-analysis visualisation
+├── requirements.txt           # Python dependencies
+└── README.md                  # Project documentation
+```
 
 ## Getting Started
 
-Python and the required scientific-computing libraries are needed to run the project.
+### Prerequisites
 
-1. Clone the repository:
+- Python 3
+- `pip`
+- Git
 
-   ```bash
-   git clone https://github.com/Xalxo2308/Automated-DSP-Signal-Processing-Analysis-Pipeline.git
-   ```
+### 1. Clone the repository
 
-2. Enter the project directory:
+```bash
+git clone https://github.com/Xalxo2308/Automated-DSP-Signal-Processing-Analysis-Pipeline.git
+cd Automated-DSP-Signal-Processing-Analysis-Pipeline
+```
 
-   ```bash
-   cd Automated-DSP-Signal-Processing-Analysis-Pipeline
-   ```
+### 2. Create a virtual environment
 
-3. Create and activate a virtual environment:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
+### 3. Install dependencies
 
-4. Install the dependencies used by the implementation:
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+```
 
-   ```bash
-   python3 -m pip install numpy scipy matplotlib
-   ```
+### 4. Run the pipeline
 
-   Matplotlib is needed only if the project uses it for plotting. Install any additional dependencies specified by the repository.
+```bash
+python3 dsp_pipeline.py
+```
 
-5. Run the project's Python entry-point script or notebook. Check the repository files to identify the correct filename and execution command.
+### 5. Run the tests
 
-## Future Improvements
+```bash
+python3 -m pytest
+```
 
-Potential extensions include:
+Review the terminal output to confirm whether the pipeline executes successfully and whether the tests pass.
 
-- Automated comparison of noisy and filtered signal spectra.
-- Quantitative measurements of SNR before and after filtering.
-- Filter-response and frequency-response plots.
-- Parameterised experiments across multiple noise levels.
-- Automated report generation for repeatable DSP experiments.
-- Integration with sampled data from an external data-acquisition system.
+## Engineering Relevance
+
+This project demonstrates concepts relevant to:
+
+- Telecommunications and signal analysis
+- Frequency-domain inspection
+- Noise modelling and SNR
+- Digital filter design
+- Configurable scientific-computing workflows
+- Modular Python development
+- Automated software testing
+
+It also provides a foundation for future experiments involving sampled sensor signals, measurement systems and more advanced digital signal-processing techniques.
+
+## Potential Future Enhancements
+
+- Quantitative comparison of input and output SNR.
+- Automated measurement of target-tone retention and interference attenuation.
+- Frequency-response plots for the designed filter.
+- Reproducible random-noise generation using configurable seeds.
+- Additional test cases for signal generation, filtering and invalid parameters.
+- Continuous integration to execute the test suite automatically.
 
 ## Author
 
@@ -177,4 +216,4 @@ GitHub: [@Xalxo2308](https://github.com/Xalxo2308)
 
 ---
 
-*This project is intended for engineering learning, experimentation and demonstration of digital signal processing principles.*
+*An engineering project exploring configurable, modular and testable digital signal processing using Python.*
