@@ -64,12 +64,14 @@ def main():
     dsp.generate_multitone(freqs=[120.0, 450.0], amplitudes=[1.0, 0.7])
     dsp.add_awgn(snr_db=5.0)
     dsp.apply_bandpass(lowcut=80.0, highcut=160.0, order=4)
+    skip_samples = int(0.05 * dsp.fs)  # Exclude first 50 ms
     # Quantitative tone-level performance measurements
     target_retention = calculate_tone_retention_percent(
         dsp.noisy_signal,
         dsp.filtered_signal,
         dsp.fs,
         120.0,
+        skip_samples=skip_samples
     )
 
     interference_attenuation = calculate_tone_attenuation_db(
@@ -77,6 +79,7 @@ def main():
         dsp.filtered_signal,
         dsp.fs,
         450.0,
+        skip_samples=skip_samples
     )
 
     print("\n--- DSP Performance Report ---")

@@ -28,13 +28,13 @@ def calculate_snr_db(
 
     return float(10 * np.log10(signal_power / noise_power))
 
-
 def calculate_tone_amplitude(
     signal: np.ndarray,
     fs: float,
     frequency: float,
+    skip_samples: int = 0,
 ) -> float:
-    """Estimate a tone's amplitude by projecting onto sine and cosine bases."""
+    """Estimate tone amplitude after optionally skipping startup samples."""
     signal = np.asarray(signal, dtype=float)
 
     if signal.ndim != 1 or signal.size == 0:
@@ -46,7 +46,15 @@ def calculate_tone_amplitude(
     if not 0 < frequency < fs / 2:
         raise ValueError("Frequency must be between 0 Hz and the Nyquist frequency.")
 
-    t = np.arange(signal.size) / fs
+    if not isinstance(skip_samples, (int, np.integer)) or skip_samples < 0:
+        raise ValueError("skip_samples must be a non-negative integer.")
+
+    if skip_samples >= signal.size:
+        raise ValueError("skip_samples must be smaller than the signal length.")
+
+    signal = signal[skip_samples:]
+    t = np.arange(skip_samples, skip_samples + signal.size) / fs
+
     sine_basis = np.sin(2 * np.pi * frequency * t)
     cosine_basis = np.cos(2 * np.pi * frequency * t)
 
@@ -61,13 +69,17 @@ def calculate_tone_attenuation_db(
     output_signal: np.ndarray,
     fs: float,
     frequency: float,
+    skip_samples: int = 0,
 ) -> float:
-    """Measure tone-amplitude reduction from input to output in dB."""
+    """Measure tone-amplitude reduction after optionally skipping startup samples."""
+    if np.asarray(input_signal).shape != np.asarray(output_signal).shape:
+        raise ValueError("Input and output signals must have the same shape.")
+
     input_amplitude = calculate_tone_amplitude(
-        input_signal, fs, frequency
+        input_signal, fs, frequency, skip_samples
     )
     output_amplitude = calculate_tone_amplitude(
-        output_signal, fs, frequency
+        output_signal, fs, frequency, skip_samples
     )
 
     if input_amplitude == 0:
@@ -84,13 +96,17 @@ def calculate_tone_retention_percent(
     output_signal: np.ndarray,
     fs: float,
     frequency: float,
+    skip_samples: int = 0,
 ) -> float:
-    """Measure the percentage of a tone's amplitude retained after filtering."""
+    """Measure tone-amplitude retention after optionally skipping startup samples."""
+    if np.asarray(input_signal).shape != np.asarray(output_signal).shape:
+        raise ValueError("Input and output signals must have the same shape.")
+
     input_amplitude = calculate_tone_amplitude(
-        input_signal, fs, frequency
+        input_signal, fs, frequency, skip_samples
     )
     output_amplitude = calculate_tone_amplitude(
-        output_signal, fs, frequency
+        output_signal, fs, frequency, skip_samples
     )
 
     if input_amplitude == 0:
